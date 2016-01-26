@@ -20,6 +20,7 @@
 			$('#btnSaveMap').click(function() {
 				
 				setTimeout(function() {
+
 					$('#map').html2canvas({
 						flashcanvas: "js/flashcanvas.min.js",
 						proxy: 'proxy.php',
@@ -27,6 +28,7 @@
 						profile: false,
 						useCORS: true
 					});
+
 				}, 1000);
 				
 			});
@@ -34,21 +36,32 @@
 		});
 		
 		function manipulateCanvasFunction(savedMap) {
+			
 			dataURL = savedMap.toDataURL("image/png");
 			dataURL = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+			
 			$.post("ajax/saveMap.php", { savedMap: dataURL }, function(data) {
-				alert('Image Saved to : ' + data);
+				
+				//elimino los caracteres ../ para referenciar la imagen
+				savedImg = data.replace('../','');
+
+				$('#img-out').empty();
+				$('#img-out').append('<img src="' + savedImg + '">');
+				alert('Image Saved to : ' +  savedImg );
+
 			});
 		}
 		
 	</script>
 	
+
 </head>
 <body>
 
 	<a href="#" id="btnSaveMap" style="border: 1px solid #66CC66; padding: 5px; background-color:#D9F2E6; display: block; text-align:center; text-decoration: none; width: 250px; margin-bottom:15px;">Save this to a png</a>
 
-	<div id="map" style="width: 600px; height: 400px"></div>
+	<div id="map" style="width: 50%; height: 400px"></div> 
+	<div id="img-out" style="width: 50%; height: 400px"></div>
 
 	<script src="Leaflet/dist/leaflet.js"></script>
 	
