@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Save Leaflet Map to PNG</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="Leaflet/dist/leaflet.css" />
+	<!--[if lte IE 8]><link rel="stylesheet" href="Leaflet/dist/leaflet.ie.css" /><![endif]-->
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script src="js/html2canvas.min.js"></script>
+	<script src="js/jquery.plugin.html2canvas.js"></script>
+
+	<script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script> 
+	<script type="text/javascript" src="http://gabelerner.github.io/canvg/StackBlur.js"></script>
+	<script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script> 
+	
+	
+	<script>
+		$(function() {
+		
+			$('#btnSaveMap').click(function() {
+				
+				var  targetElem = $('#map');
+
+				setTimeout(
+					
+
+					function svgToCanvas () {
+						var  targetElem = $('#map');
+						var nodesToRecover = [];
+						var nodesToRemove = [];
+
+						var svgElem = targetElem.find('svg');
+
+						svgElem.each(function(index, node) {
+						    var parentNode = node.parentNode;
+						    var svg = parentNode.innerHTML;
+
+						    var canvas = document.createElement('canvas');
+
+						    canvg(canvas, svg);
+
+						    nodesToRecover.push({
+						        parent: parentNode,
+						        child: node
+						    });
+						    parentNode.removeChild(node);
+
+						    nodesToRemove.push({
+						        parent: parentNode,
+						        child: canvas
+						    });
+
+						    parentNode.appendChild(canvas);
+						});
+
+
+
+
+					$('#map').html2canvas({
+						flashcanvas: "js/flashcanvas.min.js",
+						proxy: 'proxy.php',
+						logging: false,
+						profile: false,
+						useCORS: true
+					});
+
+				}, 1000);
+				
+			
+
+
+
+
+
+			});
+
+		});
+		
+		function manipulateCanvasFunction(savedMap) {
+			
+			dataURL = savedMap.toDataURL("image/png");
+			dataURL = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+			
+			$.post("ajax/saveMap.php", { savedMap: dataURL }, function(data) {
+				
+				//elimino los caracteres ../ para referenciar la imagen
+				savedImg = data.replace('../','');
+
+				$('#img-out').empty();
+				$('#img-out').append('<img src="' + savedImg + '">');
+				alert('Image Saved to : ' +  savedImg );
+
+			});
+		}
+		
+	</script>
+	
+
+</head>
+<body>
+
+	<a href="#" id="btnSaveMap" style="border: 1px solid #66CC66; padding: 5px; background-color:#D9F2E6; display: block; text-align:center; text-decoration: none; width: 250px; margin-bottom:15px;">Save this to a png</a>
+
+	<div id="map" style="width: 100%; height: 400px"></div> 
+	<div id="img-out" style="width: 100%; height: 400px"></div>
+
+	<script src="Leaflet/dist/leaflet.js"></script>
+	<script src="data/sample-geojson.js"></script>
+	
+	<script>
+		var map = L.map('map').setView([39.74739, -105], 13);
+
+		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.light'
+		}).addTo(map);
+
+		var baseballIcon = L.icon({
+			iconUrl: 'baseball-marker.png',
+			iconSize: [32, 37],
+			iconAnchor: [16, 37],
+			popupAnchor: [0, -28]
+		});
+
+		function onEachFeature(feature, layer) {
+			var popupContent = "<p>I started out as a GeoJSON " +
+					feature.geometry.type + ", but now I'm a Leaflet vector!</p>";
+
+			if (feature.properties && feature.properties.popupContent) {
+				popupContent += feature.properties.popupContent;
+			}
+
+			layer.bindPopup(popupContent);
+		}
+
+		L.geoJson([bicycleRental, campus], {
+
+			style: function (feature) {
+				return feature.properties && feature.properties.style;
+			},
+
+			onEachFeature: onEachFeature,
+
+			pointToLayer: function (feature, latlng) {
+				return L.circleMarker(latlng, {
+					radius: 8,
+					fillColor: "#ff7800",
+					color: "#000",
+					weight: 1,
+					opacity: 1,
+					fillOpacity: 0.8
+				});
+			}
+		}).addTo(map);
+
+		L.geoJson(freeBus, {
+
+			filter: function (feature, layer) {
+				if (feature.properties) {
+					// If the property "underConstruction" exists and is true, return false (don't render features under construction)
+					return feature.properties.underConstruction !== undefined ? !feature.properties.underConstruction : true;
+				}
+				return false;
+			},
+
+			onEachFeature: onEachFeature
+		}).addTo(map);
+
+		var coorsLayer = L.geoJson(coorsField, {
+
+			pointToLayer: function (feature, latlng) {
+				return L.marker(latlng, {icon: baseballIcon});
+			},
+
+			onEachFeature: onEachFeature
+		}).addTo(map);
+
+	</script>
+	
+	
+	
+</body>
+</html>
