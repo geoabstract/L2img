@@ -20,10 +20,33 @@
 
 	<script src="http://mrrio.github.io/jsPDF/dist/jspdf.debug.js"></script> 
 	
-	
+	<!-- imagenes convertidas a URIs -->
+	<script type="text/javascript" src="data/logos_uri.js"></script>
+
 	<script>
 		var dataURL;
 		$(function() {
+
+			function printDate(div) {
+				/*
+				variable : div en la que incluir la fecha
+				*/
+				var d = new Date();
+				var year = d.getFullYear();
+				var month = d.getMonth();
+				var day = d.getDay();
+
+				var h = d.getHours();
+				var min = d.getMinutes();
+				var sec = d.getSeconds();
+
+				var todayStr =  year + '-' + month + '-'+ day + ' ' + h + ':' + min + ':' + sec
+				
+				document.getElementById(div).innerHTML = todayStr;
+			}
+
+			printDate('img-out');
+
 		
 			$('#btnSaveMap').click(function(event) {
 				event.preventDefault();
@@ -90,7 +113,7 @@
 				//elimino los caracteres ../ para referenciar la imagen
 				savedImg = data.replace('../','');
 
-				$('#img-out').empty();
+				//$('#img-out').empty();
 				//$('#img-out').append('<img src="' + savedImg + '">');
 				//alert('Image Saved to : ' +  savedImg );
 				printPDF();
@@ -102,7 +125,7 @@
 	<script type="text/javascript">
 		function printPDF() {
 				
-				var paperFormat = 'landscape';
+				var paperFormat = 'portrait';
 				var fontFamily = 'helvetica';
 				var fontSize = 8;
 		        
@@ -111,12 +134,27 @@
 				doc.setFont(fontFamily);
 				doc.setFontSize(fontSize);
 				
+				doc.setDrawColor(200,200,200);
+				doc.rect(10, 10, 190, 277);
+
 				doc.text(20, 20, "Mapa impreso");
+
+				var dateString = 'Data e hora de impresión: ' + $("#img-out").text();
+
+				doc.text(20, 25, dateString);
 				//left,top, width(mm), height(mm)
-				doc.addImage(dataURL, 'PNG', 20, 30, 210, 57);
 
+				//tamaño de imagen
+				//mapa = 900 x 400 px
+				//espacio util A4 = 170 mm
+				//factor de conversion ancho = 900 / 170 = 5.3
+				//dimensiones de la imagen (mm) = 900/5.3, 400/5.3 = 170, 
+				doc.addImage(dataURL, 'PNG', 20, 30, 170, 75);
+				
+				//logotipo CMAOT
+				doc.addImage(logoCMAOT, 'PNG', 140, 15, 50, 10);
 
-		        doc.save('prueba.pdf')		        	
+		        doc.save('mapa_impreso.pdf')		        	
 		    }
 	</script>
 	
@@ -126,7 +164,7 @@
 	
 	<button style="margin: 20px;" id="btnSaveMap" type="button" class="btn btn-default"><span class="glyphicon glyphicon-print" aria-hidden="true"></span></button>
 
-	<div id="map" style="width: 100%; height: 400px"></div> 
+	<div id="map" style="width: 900px; height: 400px"></div> 
 	<div id="img-out" style="width: 100%; height: 400px"></div>
 
 	<script src="Leaflet/dist/leaflet.js"></script>
