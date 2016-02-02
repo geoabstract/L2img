@@ -6,7 +6,6 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-7s5uDGW3AHqw6xtJmNNtr+OBRJUlgkNJEo78P4b0yRw= sha512-nNo+yCHEyn0smMxSswnf/OnX6/KwJuZTlNZBjauKhTK0c+zT+q5JOCx0UFhXQ6rJR9jg6Es8gPuD2uZcYDLqSw==" crossorigin="anonymous">
 	<link rel="stylesheet" href="Leaflet/dist/leaflet.css" />
 	<!--[if lte IE 8]><link rel="stylesheet" href="Leaflet/dist/leaflet.ie.css" /><![endif]-->
 	
@@ -16,17 +15,14 @@
 
 	<script type="text/javascript" src="http://gabelerner.github.io/canvg/rgbcolor.js"></script> 
 	<script type="text/javascript" src="http://gabelerner.github.io/canvg/StackBlur.js"></script>
-	<script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script>
-
-	<script src="http://mrrio.github.io/jsPDF/dist/jspdf.debug.js"></script> 
+	<script type="text/javascript" src="http://gabelerner.github.io/canvg/canvg.js"></script> 
 	
 	
 	<script>
-		var dataURL;
 		$(function() {
 		
-			$('#btnSaveMap').click(function(event) {
-				event.preventDefault();
+			$('#btnSaveMap').click(function() {
+				
 				var  targetElem = $('#map');
 
 				setTimeout(
@@ -74,7 +70,11 @@
 
 				}, 1000);
 				
-		
+			
+
+
+
+
 
 			});
 
@@ -83,7 +83,7 @@
 		function manipulateCanvasFunction(savedMap) {
 			
 			dataURL = savedMap.toDataURL("image/png");
-			//dataURL = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+			dataURL = dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
 			
 			$.post("ajax/saveMap.php", { savedMap: dataURL }, function(data) {
 				
@@ -91,40 +91,19 @@
 				savedImg = data.replace('../','');
 
 				$('#img-out').empty();
-				//$('#img-out').append('<img src="' + savedImg + '">');
-				//alert('Image Saved to : ' +  savedImg );
-				printPDF();
+				$('#img-out').append('<img src="' + savedImg + '">');
+				alert('Image Saved to : ' +  savedImg );
+
 			});
 		}
 		
-	</script>
-
-	<script type="text/javascript">
-		function printPDF() {
-				
-				var paperFormat = 'landscape';
-				var fontFamily = 'helvetica';
-				var fontSize = 8;
-		        
-				var doc = new jsPDF(paperFormat);
-				
-				doc.setFont(fontFamily);
-				doc.setFontSize(fontSize);
-				
-				doc.text(20, 20, "Mapa impreso");
-				//left,top, width(mm), height(mm)
-				doc.addImage(dataURL, 'PNG', 20, 30, 210, 57);
-
-
-		        doc.save('prueba.pdf')		        	
-		    }
 	</script>
 	
 
 </head>
 <body>
-	
-	<button style="margin: 20px;" id="btnSaveMap" type="button" class="btn btn-default"><span class="glyphicon glyphicon-print" aria-hidden="true"></span></button>
+
+	<a href="#" id="btnSaveMap" style="border: 1px solid #66CC66; padding: 5px; background-color:#D9F2E6; display: block; text-align:center; text-decoration: none; width: 250px; margin-bottom:15px;">Save this to a png</a>
 
 	<div id="map" style="width: 100%; height: 400px"></div> 
 	<div id="img-out" style="width: 100%; height: 400px"></div>
@@ -143,7 +122,12 @@
 			id: 'mapbox.light'
 		}).addTo(map);
 
-		
+		var baseballIcon = L.icon({
+			iconUrl: 'baseball-marker.png',
+			iconSize: [32, 37],
+			iconAnchor: [16, 37],
+			popupAnchor: [0, -28]
+		});
 
 		function onEachFeature(feature, layer) {
 			var popupContent = "<p>I started out as a GeoJSON " +
@@ -192,7 +176,7 @@
 		var coorsLayer = L.geoJson(coorsField, {
 
 			pointToLayer: function (feature, latlng) {
-				return L.marker(latlng);
+				return L.marker(latlng, {icon: baseballIcon});
 			},
 
 			onEachFeature: onEachFeature
